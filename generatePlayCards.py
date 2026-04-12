@@ -101,7 +101,7 @@ def add_text_box(c, info, position, box_size,
 
 def main(csv_file_path, output_pdf_path, icon_path=None):
     data = pd.read_csv(csv_file_path)
-    data = data.applymap(lambda x: x.strip() if isinstance(x, str) else x) # Remove leading and trailing whitespaces
+    data = data.map(lambda x: x.strip() if isinstance(x, str) else x) # Remove leading and trailing whitespaces
 
     c = canvas.Canvas(output_pdf_path, pagesize=A4)
     page_width, page_height = A4
