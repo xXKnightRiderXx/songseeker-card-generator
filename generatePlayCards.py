@@ -4,6 +4,7 @@ import io
 import os
 import pandas as pd
 import qrcode
+import qrcode.constants
 import textwrap
 import requests
 from reportlab.pdfgen import canvas
