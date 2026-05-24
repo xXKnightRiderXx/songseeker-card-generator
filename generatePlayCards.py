@@ -3,6 +3,7 @@ import hashlib
 import io
 import os
 import pandas as pd
+import random
 import qrcode
 import qrcode.constants
 import textwrap
@@ -70,10 +71,10 @@ def add_text_box(
     # Check if 'backcol' is in info and set the fill color
     if "backcol" in info and not pd.isna(info["backcol"]):
         r, g, b = tuple(float(x) for x in info["backcol"].split(","))
-        page_canvas.setFillColorRGB(r, g, b)
-        page_canvas.rect(x, y, box_size, box_size, fill=1)
     else:
-        page_canvas.rect(x, y, box_size, box_size)
+        r, g, b = [random.random() for x in range(3)] # type: ignore
+    page_canvas.setFillColorRGB(r, g, b)
+    page_canvas.rect(x, y, box_size, box_size, fill=1)
 
     r, g, b = tuple(float(x) for x in default_font_color.split(","))
     page_canvas.setFillColorRGB(r, g, b)
