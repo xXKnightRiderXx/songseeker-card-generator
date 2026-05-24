@@ -1,6 +1,7 @@
 import argparse
 import hashlib
 import io
+import math
 import os
 import pandas as pd
 import random
@@ -12,6 +13,27 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import cm
 from qrcode.image.styledpil import StyledPilImage
+
+
+def normalize_color(color: float) -> float:
+    # See: https://www.w3.org/TR/WCAG22/#dfn-relative-luminance
+    if color <= 0.04045:
+        return color / 12.92
+    else:
+        return math.pow(((color + 0.055) / 1.055), 2.4)
+
+
+def determine_font_color(r: float, g: float, b: float) -> tuple[float, float, float]:
+    normalized_r = normalize_color(r)
+    normalized_g = normalize_color(g)
+    normalized_b = normalize_color(b)
+    # Taken from: https://www.w3.org/TR/WCAG22/#dfn-relative-luminance
+    relative_luminance = 0.2126 * normalized_r + 0.7152 * normalized_g + 0.0722 * normalized_b
+    # Simplified check of contrast ratio comparison: https://www.w3.org/TR/WCAG22/#dfn-contrast-ratio
+    if relative_luminance < 0.179:
+        return (1, 1, 1)
+    else:
+        return (0, 0, 0)
 
 
 def generate_qr_code(url: str, file_path: str, icon_path: str | None, icon_image_cache: dict[str, io.BytesIO] = {}):
@@ -66,18 +88,17 @@ def add_text_box(
     text_margin = 5
     text_indent = 8
 
-    default_font_color = "0,0,0"  # Default color is black
-
     # Check if 'backcol' is in info and set the fill color
     if "backcol" in info and not pd.isna(info["backcol"]):
-        r, g, b = tuple(float(x) for x in info["backcol"].split(","))
+        bg_r, bg_g, bg_b = tuple(float(x) for x in info["backcol"].split(","))
     else:
-        r, g, b = [random.random() for x in range(3)] # type: ignore
-    page_canvas.setFillColorRGB(r, g, b)
+        bg_r, bg_g, bg_b = [random.random() for x in range(3)]  # type: ignore
+    page_canvas.setFillColorRGB(bg_r, bg_g, bg_b)
     page_canvas.rect(x, y, box_size, box_size, fill=1)
 
-    r, g, b = tuple(float(x) for x in default_font_color.split(","))
-    page_canvas.setFillColorRGB(r, g, b)
+    # Determine correct font color based on the used/generated background color
+    font_r, font_g, font_b = determine_font_color(bg_r, bg_g, bg_b)
+    page_canvas.setFillColorRGB(font_r, font_g, font_b)
 
     # Calculate the centered position for each line of text
     if not pd.isna(info["Artist"]):
