@@ -1,15 +1,15 @@
+import argparse
+import hashlib
+import io
+import os
 import pandas as pd
+import qrcode
+import textwrap
+import requests
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import cm
-import qrcode
 from qrcode.image.styledpil import StyledPilImage
-import hashlib
-import argparse
-import textwrap
-import os
-import requests
-from io import BytesIO
 
 
 def generate_qr_code(url, file_path, icon_path, icon_image_cache={}):
@@ -27,7 +27,7 @@ def generate_qr_code(url, file_path, icon_path, icon_image_cache={}):
         if icon_path.startswith('http'):
             if icon_path not in icon_image_cache:
                 response = requests.get(icon_path)
-                icon_image_cache[icon_path] = BytesIO(response.content)
+                icon_image_cache[icon_path] = io.BytesIO(response.content)
             icon_image = icon_image_cache[icon_path]
             img = qr.make_image(image_factory=StyledPilImage, embeded_image_path=icon_image)
         else:
